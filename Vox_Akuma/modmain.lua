@@ -52,6 +52,7 @@ local Vox_atlas={
         "Katana.tex",
         "Haori.tex",
         "Kindred.tex",
+        "Onigiri.tex",
     },
 
 }
@@ -61,6 +62,9 @@ for img, v in pairs(Vox_atlas) do
         RegisterInventoryItemAtlas("images/inventoryimages/"..img..".xml", tex)
     end
 end
+
+RegisterInventoryItemAtlas("images/inventoryimages/oni_cl_qp.xml", "oni_cl_qp.tex")
+RegisterInventoryItemAtlas("images/inventoryimages/oni_cl_qp_cb.xml", "oni_cl_qp_cb.tex")
 
 local require = GLOBAL.require
 local STRINGS = GLOBAL.STRINGS
@@ -93,6 +97,8 @@ modimport("libs/Vox_inventoryimages.lua")
 AddMinimap()
 
 AddModCharacter("Vox","MALE")
+
+-------------------------------------------------------------
 
 AddReplicableComponent("vox_levelsys")
 AddReplicableComponent("oni_command")
@@ -139,3 +145,38 @@ STRINGS.ACTIONS.ONI_FOLLOW = {
 }
 GLOBAL.STRINGS.ONIGIRI_TALK_PANICFIRE = { "WOWO!", "I'M BURNING!", "I'M BURNING!" }
 GLOBAL.STRINGS.ONIGIRI_TALK_FIGHT = {""}
+
+local ONI_CB = GLOBAL.Action({priority = 99})
+ONI_CB.id = "ONI_CB"
+ONI_CB.str = hl_loc("收回饭团哥", 'Call back Onigiri')
+ONI_CB.fn = function(act)
+	local target = act.target	
+	local invobject = act.invobject
+	local doer = act.doer
+	if target ~= nil then
+		local targetpos = target:GetPosition()
+		local package = GLOBAL.SpawnPrefab("oni_cl_qp_Cb_build")
+		if package and package.components.oni_qp_cb then
+			package.components.oni_qp_db:Pack(target)
+			package.Transform:SetPosition( targetpos:Get() )
+			invobject:Remove()
+			if doer and doer.SoundEmitter then
+				doer.SoundEmitter:PlaySound("dontstarve/common/staff_dissassemble")
+			end
+		end
+	end
+	return true
+end
+AddAction(ONI_CB) 
+
+AddComponentAction("USEITEM", "z_vox_oni_qp" , function(inst, doer, target, actions) 
+	if target:HasTag("Onigiri") and target.prefab == "Onigiri" then
+		if target['所有者net'] and target['所有者net']:value() == doer then
+			table.insert(actions, GLOBAL.ACTIONS.ONI_CB)
+		end
+    end
+end)
+AddStategraphActionHandler("wilson",ActionHandler(ACTIONS.ONI_CB, "dolongaction"))
+AddStategraphActionHandler("wilson_client",ActionHandler(ACTIONS.ONI_CB, "dolongaction"))
+
+-------------------------------------------------------------
