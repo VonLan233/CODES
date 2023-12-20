@@ -180,3 +180,44 @@ AddStategraphActionHandler("wilson",ActionHandler(ACTIONS.ONI_CB, "dolongaction"
 AddStategraphActionHandler("wilson_client",ActionHandler(ACTIONS.ONI_CB, "dolongaction"))
 
 -------------------------------------------------------------
+--恶魔饥饿值
+-- 添加一个自定义饥饿组件
+AddComponentPostInit("DevilHunger", function(self)
+    self.dvlhun = 100 -- 初始自定义饥饿值
+
+    -- 定义恢复自定义饥饿值的函数
+    function self:EatSoul(amount)
+        self.dvlhun = math.min(self.dvlhun + amount, 100)
+        self.inst:PushEvent("dvlhundelta", {new = self.dvlhun})
+    end
+end)
+
+-- 修改灵魂和恶魔燃料的食用效果
+AddPrefabPostInit("nightmarefuel", function(inst)
+    if inst.components.edible then
+        inst.components.edible.foodtype = "CUSTOM"
+        inst.components.edible.healthvalue = 0
+        inst.components.edible.hungervalue = 0 -- 不影响正常饥饿值
+        inst.components.edible.sanityvalue = 0 -- 例如减少10理智值
+    end
+end)
+
+AddPrefabPostInit("ghostlyelixir_slowregen", function(inst) -- 假设灵魂对应的Prefab是这个
+    if inst.components.edible then
+        inst.components.edible.foodtype = "CUSTOM"
+        inst.components.edible.healthvalue = 0
+        inst.components.edible.hungervalue = 0 -- 不影响正常饥饿值
+        inst.components.edible.sanityvalue = 0
+    end
+end)
+
+-- 当玩家食用特定物品时恢复自定义饥饿值
+AddComponentPostInit("eater", function(self)
+    local oldEat = self.Eat
+    self.Eat = function(self, food)
+        if food and food.components.edible and food.components.edible.foodtype == "CUSTOM" then
+            self.inst.components.hunger:EatSoul(20) -- 假设每次恢复20自定义饥饿值
+        end
+        return oldEat(self, food)
+    end
+end)

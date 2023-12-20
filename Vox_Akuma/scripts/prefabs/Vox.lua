@@ -13,3 +13,18 @@ local start_inv={
 
 -- local function HenShin()
 
+-- local DevilHunger = Class(function(self, inst)
+--     self.inst = inst
+--     self.inst.dvlhunger = 100
+--     self.inst.dvlhungermax = 200
+--     self.inst.dvlhungermin = 0
+--     self.inst:AddTag("devilhunger")
+-- end,
+-- nil,
+-- nil)
+
+-- function DevilHunger:ForEat()
+    
+-- end
+
+-- return DevilHunger
